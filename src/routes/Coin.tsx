@@ -11,6 +11,7 @@ import { styled } from "styled-components";
 import Price from "./Price";
 import Chart from "./Chart";
 import { useQuery } from "@tanstack/react-query";
+import { Helmet } from "react-helmet";
 import { fetchCoinInfo, fetchCoinPrice } from "../api";
 
 interface RouteParams {
@@ -147,29 +148,19 @@ function Coin() {
   );
   const { isLoading: tickersLoading, data: tickersData } = useQuery<PriceData>(
     ["tickers", coinId],
-    () => fetchCoinPrice(coinId)
+    () => fetchCoinPrice(coinId),
+    { refetchInterval: 5000 }
   );
-  // const [loading, setLoading] = useState(true);
-  // const [info, setInfo] = useState<InfoData>();
-  // const [priceInfo, setPriceInfo] = useState<PriceData>();
-  // useEffect(() => {
-  //   (async () => {
-  //     const infoData = await (
-  //       await fetch(`https://api.coinpaprika.com/v1/coins/${coinId}`)
-  //     ).json();
-  //     const priceData = await (
-  //       await fetch(`https://api.coinpaprika.com/v1/tickers/${coinId}`)
-  //     ).json();
-  //     setInfo(infoData);
-  //     setPriceInfo(priceData);
-  //     setLoading(false);
-  //   })();
-  // }, []);
 
   const loading = infoLoading || tickersLoading;
 
   return (
     <Container>
+      <Helmet>
+        <title>
+          {state?.name ? state.name : loading ? "Loading..." : infoData?.name}
+        </title>
+      </Helmet>
       <Header>
         <Title>
           {state?.name ? state.name : loading ? "Loading..." : infoData?.name}
@@ -189,8 +180,8 @@ function Coin() {
               <span>${infoData?.symbol}</span>
             </OverviewItem>
             <OverviewItem>
-              <span>Open Source:</span>
-              <span>{infoData?.open_source ? "Yes" : "No"}</span>
+              <span>Price:</span>
+              <span>${tickersData?.quotes.USD.price}</span>
             </OverviewItem>
           </Overview>
           <Description>{infoData?.description}</Description>
@@ -217,7 +208,7 @@ function Coin() {
               <Price />
             </Route>
             <Route path={`/:coinId/chart`}>
-              <Chart />
+              <Chart coinId={coinId} />
             </Route>
           </Switch>
         </>
